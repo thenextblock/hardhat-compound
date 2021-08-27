@@ -1,0 +1,67 @@
+{
+  "name": "@thenextblock/hardhat-compound-plugin",
+  "version": "0.0.1",
+  "description": "",
+  "repository": "git@github.com:thenextblock/DefiToolbox.git",
+  "author": "thenextblock",
+  "license": "MIT",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "keywords": [
+    "ethereum",
+    "compound",
+    "hardhat",
+    "hardhat-plugin"
+  ],
+  "scripts": {
+    "lint:fix": "prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && tslint --fix --config tslint.json --project tsconfig.json",
+    "lint": "tslint --config tslint.json --project tsconfig.json",
+    "test": "mocha --exit --recursive 'test/**/*.test.ts'",
+    "build": "tsc",
+    "watch": "tsc -w"
+  },
+  "files": [
+    "dist/src/",
+    "src/",
+    "*.d.ts",
+    "*.d.ts.map",
+    "*.js",
+    "*.js,map",
+    "types/",
+    "LICENSE",
+    "README.md"
+  ],
+  "devDependencies": {
+    "@thenextblock/hardhat-erc20-plugin": "^0.0.1",
+    "@thenextblock/hardhat-weth-plugin": "^0.0.1",
+    "@types/chai": "^4.2.21",
+    "@types/fs-extra": "^9.0.12",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^16.6.1",
+    "chai": "^4.3.4",
+    "hardhat": "^2.6.0",
+    "mocha": "^9.0.3",
+    "prettier": "^2.3.2",
+    "ts-node": "^10.2.0",
+    "tslint": "^6.1.3",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-plugin-prettier": "^2.3.0",
+    "typescript": "^4.3.5",
+    "pretty-quick": "^3.1.1",
+    "solhint": "^3.3.6",
+    "solhint-plugin-prettier": "^0.0.5",
+    "ts-generator": "^0.1.1",
+    "typechain": "^5.1.2"
+  },
+  "dependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "@typechain/ethers-v5": "^7.0.1",
+    "@typechain/hardhat": "^2.2.0",
+    "ethers": "^5.4.1"
+  },
+  "peerDependencies": {
+    "hardhat": "^2.6.0",
+    "@thenextblock/hardhat-erc20-plugin": "^0.0.1",
+    "@thenextblock/hardhat-weth-plugin": "^0.0.1"
+  }
+}
