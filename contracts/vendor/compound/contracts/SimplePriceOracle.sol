@@ -2,7 +2,6 @@ pragma solidity ^0.5.16;
 
 import "./PriceOracle.sol";
 import "./CErc20.sol";
-import "hardhat/console.sol";
 
 contract SimplePriceOracle is PriceOracle {
     mapping(address => uint) prices;
@@ -17,14 +16,12 @@ contract SimplePriceOracle is PriceOracle {
     }
 
     function setUnderlyingPrice(CToken cToken, uint underlyingPriceMantissa) public {
-console.log("SimplePriceOracle => setUnderlyingPrice");
         address asset = address(CErc20(address(cToken)).underlying());
         emit PricePosted(asset, prices[asset], underlyingPriceMantissa, underlyingPriceMantissa);
         prices[asset] = underlyingPriceMantissa;
     }
 
     function setDirectPrice(address asset, uint price) public {
-console.log("SimplePriceOracle => setDirectPrice");
         emit PricePosted(asset, prices[asset], price, price);
         prices[asset] = price;
     }

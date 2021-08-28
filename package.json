@@ -32,8 +32,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@thenextblock/hardhat-erc20-plugin": "^0.0.1",
-    "@thenextblock/hardhat-weth-plugin": "^0.0.1",
+    "@thenextblock/hardhat-erc20-plugin": "^0.0.4",
     "@types/chai": "^4.2.21",
     "@types/fs-extra": "^9.0.12",
     "@types/mocha": "^9.0.0",

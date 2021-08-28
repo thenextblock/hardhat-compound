@@ -9,8 +9,8 @@ import "./Unitroller.sol";
 import "./Governance/Comp.sol";
 
 /**
- * @author Compound
  * @title Compound's Comptroller Contract
+ * @author Compound
  */
 contract ComptrollerG6 is ComptrollerV5Storage, ComptrollerInterface, ComptrollerErrorReporter, ExponentialNoError {
     /// @notice Emitted when an admin supports a market
@@ -337,7 +337,6 @@ contract ComptrollerG6 is ComptrollerV5Storage, ComptrollerInterface, Comptrolle
      * @return 0 if the borrow is allowed, otherwise a semi-opaque error code (See ErrorReporter.sol)
      */
     function borrowAllowed(address cToken, address borrower, uint borrowAmount) external returns (uint) {
-console.log('Comptroller => borrowAllowed');
         // Pausing is a very serious situation - we revert to sound the alarms
         require(!borrowGuardianPaused[cToken], "borrow is paused");
 
@@ -359,15 +358,12 @@ console.log('Comptroller => borrowAllowed');
             assert(markets[cToken].accountMembership[borrower]);
         }
 
-console.log('Comptroller => borrowAllowed -> oracle.getUnderlyingPrice %s ', uint(oracle.getUnderlyingPrice(CToken(cToken))));
         if (oracle.getUnderlyingPrice(CToken(cToken)) == 0) {
-console.log('Comptroller => borrowAllowed -> oracle.getUnderlyingPrice PRICE_ERROR !!! ');
             return uint(Error.PRICE_ERROR);
         }
 
 
         uint borrowCap = borrowCaps[cToken];
-console.log('Comptroller => borrowAllowed -> borrowCap ');
         // Borrow cap of 0 corresponds to unlimited borrowing
         if (borrowCap != 0) {
             uint totalBorrows = CToken(cToken).totalBorrows();
@@ -961,7 +957,7 @@ console.log('Comptroller => borrowAllowed -> borrowCap ');
       * @param newBorrowCaps The new borrow cap values in underlying to be set. A value of 0 corresponds to unlimited borrowing.
       */
     function _setMarketBorrowCaps(CToken[] calldata cTokens, uint[] calldata newBorrowCaps) external {
-    	require(msg.sender == admin || msg.sender == borrowCapGuardian, "only admin or borrow cap guardian can set borrow caps");
+    	require(msg.sender == admin || msg.sender == borrowCapGuardian, "only admin or borrow cap guardian can set borrow caps"); 
 
         uint numMarkets = cTokens.length;
         uint numBorrowCaps = newBorrowCaps.length;

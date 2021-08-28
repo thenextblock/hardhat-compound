@@ -1,5 +1,6 @@
 import '@nomiclabs/hardhat-ethers';
 import '@typechain/hardhat';
+import '@thenextblock/hardhat-erc20-plugin';
 
 module.exports = {
   typechain: {

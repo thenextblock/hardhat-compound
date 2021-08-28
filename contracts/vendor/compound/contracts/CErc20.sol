@@ -1,7 +1,10 @@
 pragma solidity ^0.5.16;
 
 import "./CToken.sol";
-import "hardhat/console.sol";
+
+interface CompLike {
+  function delegate(address delegatee) external;
+}
 
 /**
  * @title Compound's CErc20 Contract
@@ -26,8 +29,6 @@ contract CErc20 is CToken, CErc20Interface {
                         string memory name_,
                         string memory symbol_,
                         uint8 decimals_) public {
-
-        admin = msg.sender;
         // CToken initialize does the bulk of the work
         super.initialize(comptroller_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_);
 
@@ -75,7 +76,6 @@ contract CErc20 is CToken, CErc20Interface {
       * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
       */
     function borrow(uint borrowAmount) external returns (uint) {
-        console.log('cErc20 => borrow');
         return borrowInternal(borrowAmount);
     }
 
@@ -140,10 +140,7 @@ contract CErc20 is CToken, CErc20Interface {
      * @return The quantity of underlying tokens owned by this contract
      */
     function getCashPrior() internal view returns (uint) {
-console.log('cErc20 => getCashPrior');
-console.log('cErc20 => getCashPrior -> underlying %s', underlying);
         EIP20Interface token = EIP20Interface(underlying);
-console.log('cErc20 => getCashPrior -> balanceOf(%s) = %s', token.balanceOf(address(this)));
         return token.balanceOf(address(this));
     }
 
@@ -202,7 +199,7 @@ console.log('cErc20 => getCashPrior -> balanceOf(%s) = %s', token.balanceOf(addr
                 case 0 {                      // This is a non-standard ERC-20
                     success := not(0)          // set success to true
                 }
-                case 32 {                     // This is a complaint ERC-20
+                case 32 {                     // This is a compliant ERC-20
                     returndatacopy(0, 0, 32)
                     success := mload(0)        // Set `success = returndata` of external call
                 }
@@ -211,5 +208,15 @@ console.log('cErc20 => getCashPrior -> balanceOf(%s) = %s', token.balanceOf(addr
                 }
         }
         require(success, "TOKEN_TRANSFER_OUT_FAILED");
+    }
+
+    /**
+    * @notice Admin call to delegate the votes of the COMP-like underlying
+    * @param compLikeDelegatee The address to delegate votes to
+    * @dev CTokens whose underlying are not CompLike should revert here
+    */
+    function _delegateCompLikeTo(address compLikeDelegatee) external {
+        require(msg.sender == admin, "only the admin may set the comp-like delegate");
+        CompLike(underlying).delegate(compLikeDelegatee);
     }
 }

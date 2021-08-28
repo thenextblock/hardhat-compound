@@ -45,7 +45,7 @@ contract CErc20Delegator is CTokenInterface, CErc20Interface, CDelegatorInterfac
                                                             decimals_));
 
         // New implementations always get set via the settor (post-initialize)
-        // _setImplementation(implementation_, false, becomeImplementationData);
+        _setImplementation(implementation_, false, becomeImplementationData);
 
         // Set the proper admin now that initialization is done
         admin = admin_;

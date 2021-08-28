@@ -7,8 +7,6 @@ import "./Exponential.sol";
 import "./EIP20Interface.sol";
 import "./InterestRateModel.sol";
 
-import "hardhat/console.sol";
-
 /**
  * @title Compound's CToken Contract
  * @notice Abstract base for CTokens
@@ -384,38 +382,28 @@ contract CToken is CTokenInterface, Exponential, TokenErrorReporter {
      *   up to the current block and writes new checkpoint to storage.
      */
     function accrueInterest() public returns (uint) {
-console.log("cToken => accrueInterest");
         /* Remember the initial block number */
         uint currentBlockNumber = getBlockNumber();
-console.log("cToken => accrueInterest -> currentBlockNumber %s", currentBlockNumber);
         uint accrualBlockNumberPrior = accrualBlockNumber;
 
-console.log('cToken - accrueInterest -> Short-circuit accumulating 0 interest ');
         /* Short-circuit accumulating 0 interest */
         if (accrualBlockNumberPrior == currentBlockNumber) {
             return uint(Error.NO_ERROR);
         }
 
-      /* Read the previous values out of storage */
-console.log('cToken - accrueInterest -> Read the previous values out of storage ');
+        /* Read the previous values out of storage */
         uint cashPrior = getCashPrior();
-console.log('cToken => accrueInterest -> cashPrior %s', cashPrior);
         uint borrowsPrior = totalBorrows;
-console.log('cToken => accrueInterest -> borrowsPrior %s ', borrowsPrior);
         uint reservesPrior = totalReserves;
-console.log('cToken => accrueInterest -> reservesPrior %s ', reservesPrior);
         uint borrowIndexPrior = borrowIndex;
-console.log('cToken => accrueInterest -> borrowIndexPrior %s ', borrowIndexPrior);
 
         /* Calculate the current borrow interest rate */
         uint borrowRateMantissa = interestRateModel.getBorrowRate(cashPrior, borrowsPrior, reservesPrior);
-console.log('cToken => accrueInterest -> borrowRateMantissa %s ', borrowRateMantissa);
         require(borrowRateMantissa <= borrowRateMaxMantissa, "borrow rate is absurdly high");
 
         /* Calculate the number of blocks elapsed since the last accrual */
         (MathError mathErr, uint blockDelta) = subUInt(currentBlockNumber, accrualBlockNumberPrior);
         require(mathErr == MathError.NO_ERROR, "could not calculate block delta");
-console.log('cToken => accrueInterest -> blockDelta %s ', blockDelta);
 
         /*
          * Calculate the interest accumulated into borrows and reserves and the new index:
@@ -433,31 +421,26 @@ console.log('cToken => accrueInterest -> blockDelta %s ', blockDelta);
         uint borrowIndexNew;
 
         (mathErr, simpleInterestFactor) = mulScalar(Exp({mantissa: borrowRateMantissa}), blockDelta);
-console.log('cToken => accrueInterest -> (simpleInterestFactor) = (%s)', simpleInterestFactor.mantissa);
         if (mathErr != MathError.NO_ERROR) {
             return failOpaque(Error.MATH_ERROR, FailureInfo.ACCRUE_INTEREST_SIMPLE_INTEREST_FACTOR_CALCULATION_FAILED, uint(mathErr));
         }
 
         (mathErr, interestAccumulated) = mulScalarTruncate(simpleInterestFactor, borrowsPrior);
-console.log('cToken => accrueInterest -> (mathErr, interestAccumulated) = (%s, %s)', uint(mathErr), interestAccumulated);
         if (mathErr != MathError.NO_ERROR) {
             return failOpaque(Error.MATH_ERROR, FailureInfo.ACCRUE_INTEREST_ACCUMULATED_INTEREST_CALCULATION_FAILED, uint(mathErr));
         }
 
         (mathErr, totalBorrowsNew) = addUInt(interestAccumulated, borrowsPrior);
-console.log('cToken => accrueInterest -> (mathErr, totalBorrowsNew) = (%s, %s)', uint(mathErr), totalBorrowsNew);
         if (mathErr != MathError.NO_ERROR) {
             return failOpaque(Error.MATH_ERROR, FailureInfo.ACCRUE_INTEREST_NEW_TOTAL_BORROWS_CALCULATION_FAILED, uint(mathErr));
         }
 
         (mathErr, totalReservesNew) = mulScalarTruncateAddUInt(Exp({mantissa: reserveFactorMantissa}), interestAccumulated, reservesPrior);
-console.log('cToken => accrueInterest -> (mathErr, totalReservesNew) = (%s, %s)', uint(mathErr), totalReservesNew);
         if (mathErr != MathError.NO_ERROR) {
             return failOpaque(Error.MATH_ERROR, FailureInfo.ACCRUE_INTEREST_NEW_TOTAL_RESERVES_CALCULATION_FAILED, uint(mathErr));
         }
 
         (mathErr, borrowIndexNew) = mulScalarTruncateAddUInt(simpleInterestFactor, borrowIndexPrior, borrowIndexPrior);
-console.log('cToken => accrueInterest -> (mathErr, borrowIndexNew) = (%s, %s)', uint(mathErr), borrowIndexNew);
         if (mathErr != MathError.NO_ERROR) {
             return failOpaque(Error.MATH_ERROR, FailureInfo.ACCRUE_INTEREST_NEW_BORROW_INDEX_CALCULATION_FAILED, uint(mathErr));
         }
@@ -472,7 +455,6 @@ console.log('cToken => accrueInterest -> (mathErr, borrowIndexNew) = (%s, %s)', 
         totalBorrows = totalBorrowsNew;
         totalReserves = totalReservesNew;
 
-        //console.log("cToken => accrueInterest -> (cashPrior, interestAccumulated, borrowIndexNew, totalBorrowsNew) (%s,%s,%s,%s)", cashPrior, interestAccumulated, borrowIndexNew, totalBorrowsNew);
         /* We emit an AccrueInterest event */
         emit AccrueInterest(cashPrior, interestAccumulated, borrowIndexNew, totalBorrowsNew);
 
@@ -487,7 +469,6 @@ console.log('cToken => accrueInterest -> (mathErr, borrowIndexNew) = (%s, %s)', 
      */
     function mintInternal(uint mintAmount) internal nonReentrant returns (uint, uint) {
         uint error = accrueInterest();
-        console.log('cToken => mintInternal Error : %s ', uint(Error.NO_ERROR));
         if (error != uint(Error.NO_ERROR)) {
             // accrueInterest emits logs on errors, but we still want to log the fact that an attempted borrow failed
             return (fail(Error(error), FailureInfo.MINT_ACCRUE_INTEREST_FAILED), 0);
@@ -731,16 +712,14 @@ console.log('cToken => accrueInterest -> (mathErr, borrowIndexNew) = (%s, %s)', 
       * @param borrowAmount The amount of the underlying asset to borrow
       * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
       */
-    // nonReentrant
-    function borrowInternal(uint borrowAmount) internal  returns (uint) {
-        console.log('cToken => borrowInternal');
+    function borrowInternal(uint borrowAmount) internal nonReentrant returns (uint) {
         uint error = accrueInterest();
-         if (error != uint(Error.NO_ERROR)) {
-             // accrueInterest emits logs on errors, but we still want to log the fact that an attempted borrow failed
-             return fail(Error(error), FailureInfo.BORROW_ACCRUE_INTEREST_FAILED);
-         }
-         // borrowFresh emits borrow-specific logs on errors, so we don't need to
-         return borrowFresh(msg.sender, borrowAmount);
+        if (error != uint(Error.NO_ERROR)) {
+            // accrueInterest emits logs on errors, but we still want to log the fact that an attempted borrow failed
+            return fail(Error(error), FailureInfo.BORROW_ACCRUE_INTEREST_FAILED);
+        }
+        // borrowFresh emits borrow-specific logs on errors, so we don't need to
+        return borrowFresh(msg.sender, borrowAmount);
     }
 
     struct BorrowLocalVars {
@@ -756,13 +735,9 @@ console.log('cToken => accrueInterest -> (mathErr, borrowIndexNew) = (%s, %s)', 
       * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
       */
     function borrowFresh(address payable borrower, uint borrowAmount) internal returns (uint) {
-console.log('-');
-console.log('cToken => borrowFresh');
         /* Fail if borrow not allowed */
         uint allowed = comptroller.borrowAllowed(address(this), borrower, borrowAmount);
-console.log('cToken => borrowFresh -> borrowAllowed %s', allowed);
         if (allowed != 0) {
-console.log('cToken => borrowFresh -> Borrow Not Allowed');
             return failOpaque(Error.COMPTROLLER_REJECTION, FailureInfo.BORROW_COMPTROLLER_REJECTION, allowed);
         }
 
@@ -1061,6 +1036,18 @@ console.log('cToken => borrowFresh -> Borrow Not Allowed');
         return seizeInternal(msg.sender, liquidator, borrower, seizeTokens);
     }
 
+    struct SeizeInternalLocalVars {
+        MathError mathErr;
+        uint borrowerTokensNew;
+        uint liquidatorTokensNew;
+        uint liquidatorSeizeTokens;
+        uint protocolSeizeTokens;
+        uint protocolSeizeAmount;
+        uint exchangeRateMantissa;
+        uint totalReservesNew;
+        uint totalSupplyNew;
+    }
+
     /**
      * @notice Transfers collateral tokens (this market) to the liquidator.
      * @dev Called only during an in-kind liquidation, or by liquidateBorrow during the liquidation of another CToken.
@@ -1083,23 +1070,32 @@ console.log('cToken => borrowFresh -> Borrow Not Allowed');
             return fail(Error.INVALID_ACCOUNT_PAIR, FailureInfo.LIQUIDATE_SEIZE_LIQUIDATOR_IS_BORROWER);
         }
 
-        MathError mathErr;
-        uint borrowerTokensNew;
-        uint liquidatorTokensNew;
+        SeizeInternalLocalVars memory vars;
 
         /*
          * We calculate the new borrower and liquidator token balances, failing on underflow/overflow:
          *  borrowerTokensNew = accountTokens[borrower] - seizeTokens
          *  liquidatorTokensNew = accountTokens[liquidator] + seizeTokens
          */
-        (mathErr, borrowerTokensNew) = subUInt(accountTokens[borrower], seizeTokens);
-        if (mathErr != MathError.NO_ERROR) {
-            return failOpaque(Error.MATH_ERROR, FailureInfo.LIQUIDATE_SEIZE_BALANCE_DECREMENT_FAILED, uint(mathErr));
+        (vars.mathErr, vars.borrowerTokensNew) = subUInt(accountTokens[borrower], seizeTokens);
+        if (vars.mathErr != MathError.NO_ERROR) {
+            return failOpaque(Error.MATH_ERROR, FailureInfo.LIQUIDATE_SEIZE_BALANCE_DECREMENT_FAILED, uint(vars.mathErr));
         }
 
-        (mathErr, liquidatorTokensNew) = addUInt(accountTokens[liquidator], seizeTokens);
-        if (mathErr != MathError.NO_ERROR) {
-            return failOpaque(Error.MATH_ERROR, FailureInfo.LIQUIDATE_SEIZE_BALANCE_INCREMENT_FAILED, uint(mathErr));
+        vars.protocolSeizeTokens = mul_(seizeTokens, Exp({mantissa: protocolSeizeShareMantissa}));
+        vars.liquidatorSeizeTokens = sub_(seizeTokens, vars.protocolSeizeTokens);
+
+        (vars.mathErr, vars.exchangeRateMantissa) = exchangeRateStoredInternal();
+        require(vars.mathErr == MathError.NO_ERROR, "exchange rate math error");
+
+        vars.protocolSeizeAmount = mul_ScalarTruncate(Exp({mantissa: vars.exchangeRateMantissa}), vars.protocolSeizeTokens);
+
+        vars.totalReservesNew = add_(totalReserves, vars.protocolSeizeAmount);
+        vars.totalSupplyNew = sub_(totalSupply, vars.protocolSeizeTokens);
+
+        (vars.mathErr, vars.liquidatorTokensNew) = addUInt(accountTokens[liquidator], vars.liquidatorSeizeTokens);
+        if (vars.mathErr != MathError.NO_ERROR) {
+            return failOpaque(Error.MATH_ERROR, FailureInfo.LIQUIDATE_SEIZE_BALANCE_INCREMENT_FAILED, uint(vars.mathErr));
         }
 
         /////////////////////////
@@ -1107,11 +1103,15 @@ console.log('cToken => borrowFresh -> Borrow Not Allowed');
         // (No safe failures beyond this point)
 
         /* We write the previously calculated values into storage */
-        accountTokens[borrower] = borrowerTokensNew;
-        accountTokens[liquidator] = liquidatorTokensNew;
+        totalReserves = vars.totalReservesNew;
+        totalSupply = vars.totalSupplyNew;
+        accountTokens[borrower] = vars.borrowerTokensNew;
+        accountTokens[liquidator] = vars.liquidatorTokensNew;
 
         /* Emit a Transfer event */
-        emit Transfer(borrower, liquidator, seizeTokens);
+        emit Transfer(borrower, liquidator, vars.liquidatorSeizeTokens);
+        emit Transfer(borrower, address(this), vars.protocolSeizeTokens);
+        emit ReservesAdded(address(this), vars.protocolSeizeAmount, vars.totalReservesNew);
 
         /* We call the defense hook */
         // unused function
@@ -1450,7 +1450,6 @@ console.log('cToken => borrowFresh -> Borrow Not Allowed');
      * @dev Prevents a contract from calling itself, directly or indirectly.
      */
     modifier nonReentrant() {
-        console.log('Entered :::: ? ');
         require(_notEntered, "re-entered");
         _notEntered = false;
         _;
