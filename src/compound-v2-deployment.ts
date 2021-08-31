@@ -7,7 +7,7 @@ import {
   WhitePaperInterestRateModel,
 } from '../types';
 
-export class CompoundV2Deplotyment {
+export class CompoundV2Deployment {
   public readonly deployer: Signer;
 
   public declare simpleOracle: SimplePriceOracle;

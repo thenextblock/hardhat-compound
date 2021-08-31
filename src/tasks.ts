@@ -10,19 +10,19 @@ import {
   WhitePaperInterestRateModel__factory,
 } from '../types';
 
-import { CompoundV2Deplotyment } from './compound-v2-deployment';
+import { CompoundV2Deployment } from './compound-v2-deployment';
 
 export const COMPOUND_CORE_DEPLOY = 'compound:core:deploy';
-export const COMPOUND_CTOKENS_DEPLOY = 'compound:ctoken:deploy';
+export const COMPOUND_CTOKEN_DEPLOY = 'compound:ctoken:deploy';
 
-task(COMPOUND_CORE_DEPLOY, 'Deploy Compund V2 contracts').setAction(async (args, hre) => {
+task(COMPOUND_CORE_DEPLOY, 'Deploy Compound V2 contracts').setAction(async (args, hre) => {
   const [deployer] = await hre.ethers.getSigners();
 
   const simpleOracle = await new SimplePriceOracle__factory(deployer).deploy();
   console.log(`simpleOracle: ${simpleOracle.address}`);
 
   const comptroller = await new ComptrollerG6__factory(deployer).deploy();
-  console.log(`comtproller: ${comptroller.address}`);
+  console.log(`comptroller: ${comptroller.address}`);
 
   await comptroller._setPriceOracle(simpleOracle.address);
 
@@ -40,21 +40,21 @@ task(COMPOUND_CORE_DEPLOY, 'Deploy Compund V2 contracts').setAction(async (args,
   ).deploy(baseRatePerYear, multiplierPerYear);
   console.log(`whitePaperInterestRateModel: ${whitePaperInterestRateModel.address}`);
 
-  const compundV2Deployment = new CompoundV2Deplotyment(deployer);
-  compundV2Deployment.simpleOracle = simpleOracle;
-  compundV2Deployment.comptroller = comptroller;
-  compundV2Deployment.unitroller = unitroller;
-  compundV2Deployment.whitePaperInterestRateModel = whitePaperInterestRateModel;
+  const compoundV2Deployment = new CompoundV2Deployment(deployer);
+  compoundV2Deployment.simpleOracle = simpleOracle;
+  compoundV2Deployment.comptroller = comptroller;
+  compoundV2Deployment.unitroller = unitroller;
+  compoundV2Deployment.whitePaperInterestRateModel = whitePaperInterestRateModel;
 
-  return compundV2Deployment;
+  return compoundV2Deployment;
 });
 
-task(COMPOUND_CTOKENS_DEPLOY, 'Deploy cTokens')
+task(COMPOUND_CTOKEN_DEPLOY, 'Deploy cTokens')
   .addParam('comptroller', 'Comptroller address')
-  .addParam('underlying', 'Underlying Token Adddress')
+  .addParam('underlying', 'Underlying Token Address')
   .addParam('name', 'cToken Name')
   .addParam('symbol', 'cToken Symbol')
-  .addParam('interestratemodel', 'WhitePaperInterestRateModel address')
+  .addParam('interestratemodel', 'InterestRateModel address')
   .setAction(async (args, hre) => {
     const [deployer] = await hre.ethers.getSigners();
 
@@ -64,7 +64,7 @@ task(COMPOUND_CTOKENS_DEPLOY, 'Deploy cTokens')
       deployer
     );
 
-    const _initialExchangeRateMantissa = '1000000000000000000'; // TODO: Move to Args
+    const _initialExchangeRateMantissa = '1000000000000000000'; // TODO: Move to args
     const cToken = await new CErc20__factory(deployer).deploy();
 
     await cToken['initialize(address,address,address,uint256,string,string,uint8)'](
@@ -78,7 +78,7 @@ task(COMPOUND_CTOKENS_DEPLOY, 'Deploy cTokens')
     );
     console.log(`cToken deployed: ${cToken.address}`);
 
-    // TODO cEth also shoudl be moved separately
+    // TODO cEth also should be moved separately
     const cEtherFactory = new CEther__factory(deployer);
     const cEth = await cEtherFactory.deploy(
       comptroller.address,
