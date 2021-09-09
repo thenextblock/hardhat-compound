@@ -1,10 +1,10 @@
 import '@nomiclabs/hardhat-ethers';
-import '@typechain/hardhat';
 import '@thenextblock/hardhat-erc20-plugin';
+import '@typechain/hardhat';
 
 module.exports = {
   typechain: {
-    outDir: 'types',
+    outDir: 'typechain',
     target: 'ethers-v5',
   },
   solidity: {
