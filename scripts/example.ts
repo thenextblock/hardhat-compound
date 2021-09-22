@@ -3,25 +3,21 @@ import { Erc20Token } from '@thenextblock/hardhat-erc20-plugin';
 import hre from 'hardhat';
 
 import {
-  CTOKEN_TYPE,
   deployCEth,
   deployComptroller,
   deployCToken,
-  deployInterestRateModel,
-  deployUnitroller,
-  IRM,
+  deployPriceOracle,
+  deployWhitePaperInterestRateModel,
 } from '../src';
 
 async function main() {
   const [deployer] = await hre.ethers.getSigners();
-  const unitroller = await deployUnitroller(deployer);
   const comptroller = await deployComptroller(deployer);
-  await unitroller._setPendingImplementation(comptroller.address);
-  await comptroller._become(unitroller.address);
+  const priceOracle = await deployPriceOracle(deployer);
+  await comptroller._setPriceOracle(priceOracle.address);
 
   const bat = await Erc20Token.deploy(new Erc20Token('Basic Attention Token', 'BAT', 8), deployer);
-  const cBatIrm = await deployInterestRateModel(
-    IRM.WhitePaperInterestRateModel,
+  const cBatIrm = await deployWhitePaperInterestRateModel(
     {
       baseRatePerYear: '20000000000000000',
       multiplierPerYear: '300000000000000000',
@@ -29,7 +25,6 @@ async function main() {
     deployer
   );
   const cBat = await deployCToken(
-    CTOKEN_TYPE.CErc20Immutable,
     {
       underlying: bat.address,
       comptroller: comptroller.address,
@@ -44,8 +39,13 @@ async function main() {
   );
   console.log('cBat', cBat.address);
 
-  const cEthIrm = await deployInterestRateModel(
-    IRM.WhitePaperInterestRateModel,
+  await comptroller._supportMarket(cBat.address);
+  await priceOracle.setUnderlyingPrice(cBat.address, '645000000000000000');
+
+  const batPrice = hre.ethers.utils.formatEther(await priceOracle.getUnderlyingPrice(cBat.address));
+  console.log('cBat price:', batPrice);
+
+  const cEthIrm = await deployWhitePaperInterestRateModel(
     {
       baseRatePerYear: '20000000000000000',
       multiplierPerYear: '100000000000000000',
@@ -66,6 +66,8 @@ async function main() {
     deployer
   );
   console.log('cEth', cEth.address);
+
+  await comptroller._supportMarket(cEth.address);
 }
 
 main().then();

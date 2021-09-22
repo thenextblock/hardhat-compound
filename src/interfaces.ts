@@ -1,7 +1,6 @@
 export interface CompoundV2 {
-  simpleOracle?: string;
+  priceOracle?: string;
   comptroller?: string;
-  unitroller?: string;
 }
 
 export interface CToken {
@@ -9,7 +8,7 @@ export interface CToken {
   decimals: number;
   address: string;
   underlying: string;
-  irm: string;
+  interestRateModel: string;
 }
 
 export interface CEthArgs {
@@ -37,10 +36,19 @@ export interface CErc20DelegatorArgs extends CErc20Args {
   implementation: string;
 }
 
-export interface InterestRateModelArgs {
+export type WhitePaperInterestRateModelArgs = {
   baseRatePerYear: string;
   multiplierPerYear: string;
-  jumpMultiplierPerYear?: number;
-  kink?: number;
-  owner?: string;
-}
+};
+
+export type BaseJumpRateModelV2Args = {
+  baseRatePerYear: string;
+  multiplierPerYear: string;
+  jumpMultiplierPerYear: number;
+  kink: number;
+  owner: string;
+};
+
+export type LegacyJumpRateModelV2Args = BaseJumpRateModelV2Args;
+
+export type JumpRateModelV2Args = BaseJumpRateModelV2Args;
