@@ -1,13 +1,15 @@
 import { Signer } from 'ethers';
 
 import {
+  CErc20Delegator,
   CErc20Delegator__factory,
   CErc20Immutable,
   CErc20Immutable__factory,
+  CErc20Interface,
+  CEther,
   CEther__factory,
   Comptroller,
   Comptroller__factory,
-  CTokenInterface,
   JumpRateModelV2,
   JumpRateModelV2__factory,
   LegacyJumpRateModelV2,
@@ -32,19 +34,16 @@ import {
 
 export async function deployCompoundV2(deployer: Signer): Promise<CompoundV2> {
   const comptroller = await deployComptroller(deployer);
-  const simpleOracle = await deployPriceOracle(deployer);
-  await comptroller._setPriceOracle(simpleOracle.address);
+  const priceOracle = await deployPriceOracle(deployer);
+  await comptroller._setPriceOracle(priceOracle.address);
 
-  return {
-    comptroller: comptroller.address,
-    priceOracle: simpleOracle.address,
-  };
+  return { comptroller, priceOracle };
 }
 
 export async function deployCToken(
   args: CErc20Args | CErc20DelegatorArgs,
   deployer: Signer
-): Promise<CTokenInterface> {
+): Promise<CErc20Interface> {
   if ('implementation' in args) {
     return deployCErc20Delegator(args, deployer);
   }
@@ -89,7 +88,7 @@ export async function deployLegacyJumpRateModelV2(
   return new LegacyJumpRateModelV2__factory(deployer).deploy(
     args.baseRatePerYear,
     args.multiplierPerYear,
-    args.jumpMultiplierPerYear!,
+    args.jumpMultiplierPerYear,
     args.kink,
     args.owner
   );
@@ -99,7 +98,7 @@ export async function deployPriceOracle(deployer: Signer): Promise<SimplePriceOr
   return new SimplePriceOracle__factory(deployer).deploy();
 }
 
-export async function deployCEth(args: CEthArgs, deployer: Signer): Promise<CTokenInterface> {
+export async function deployCEth(args: CEthArgs, deployer: Signer): Promise<CEther> {
   return new CEther__factory(deployer).deploy(
     args.comptroller,
     args.interestRateModel,
@@ -127,7 +126,7 @@ async function deployCErc20Immutable(args: CErc20Args, deployer: Signer): Promis
 async function deployCErc20Delegator(
   args: CErc20DelegatorArgs,
   deployer: Signer
-): Promise<CTokenInterface> {
+): Promise<CErc20Delegator> {
   return new CErc20Delegator__factory(deployer).deploy(
     args.underlying,
     args.comptroller,
@@ -138,6 +137,6 @@ async function deployCErc20Delegator(
     args.decimals,
     args.admin,
     args.implementation,
-    '0x00'
+    '0x0'
   );
 }

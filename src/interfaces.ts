@@ -1,6 +1,8 @@
+import { Comptroller, SimplePriceOracle } from '../typechain';
+
 export interface CompoundV2 {
-  priceOracle?: string;
-  comptroller?: string;
+  readonly comptroller: Comptroller;
+  readonly priceOracle: SimplePriceOracle;
 }
 
 export interface CToken {
