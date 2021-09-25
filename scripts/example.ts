@@ -4,46 +4,43 @@ import hre from 'hardhat';
 
 import {
   deployCEth,
-  deployComptroller,
+  deployCompoundV2,
   deployCToken,
-  deployPriceOracle,
   deployWhitePaperInterestRateModel,
 } from '../src';
 
 async function main() {
   const [deployer] = await hre.ethers.getSigners();
-  const comptroller = await deployComptroller(deployer);
-  const priceOracle = await deployPriceOracle(deployer);
-  await comptroller._setPriceOracle(priceOracle.address);
+  const { comptroller, priceOracle } = await deployCompoundV2(deployer);
 
-  const bat = await Erc20Token.deploy(new Erc20Token('Basic Attention Token', 'BAT', 8), deployer);
-  const cBatIrm = await deployWhitePaperInterestRateModel(
+  const aaa = await Erc20Token.deploy(new Erc20Token('A token', 'AAA', 8), deployer);
+  const aaaIrm = await deployWhitePaperInterestRateModel(
     {
       baseRatePerYear: '20000000000000000',
       multiplierPerYear: '300000000000000000',
     },
     deployer
   );
-  const cBat = await deployCToken(
+  const cAAA = await deployCToken(
     {
-      underlying: bat.address,
+      underlying: aaa.address,
       comptroller: comptroller.address,
-      interestRateModel: cBatIrm.address,
+      interestRateModel: aaaIrm.address,
       initialExchangeRateMantissa: '200000000000000000000000000',
-      name: 'Compound Basic Attention Token',
-      symbol: 'cBat',
+      name: 'Compound A Token',
+      symbol: 'cAAA',
       decimals: 8,
       admin: deployer.address,
     },
     deployer
   );
-  console.log('cBat', cBat.address);
+  console.log('cBat', cAAA.address);
 
-  await comptroller._supportMarket(cBat.address);
-  await priceOracle.setUnderlyingPrice(cBat.address, '645000000000000000');
+  await comptroller._supportMarket(cAAA.address);
+  await priceOracle.setUnderlyingPrice(cAAA.address, '645000000000000000');
 
-  const batPrice = hre.ethers.utils.formatEther(await priceOracle.getUnderlyingPrice(cBat.address));
-  console.log('cBat price:', batPrice);
+  const aaaPrice = hre.ethers.utils.formatEther(await priceOracle.getUnderlyingPrice(cAAA.address));
+  console.log('cAAA price:', aaaPrice);
 
   const cEthIrm = await deployWhitePaperInterestRateModel(
     {
