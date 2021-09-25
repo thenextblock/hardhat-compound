@@ -1,6 +1,8 @@
 import { Signer } from 'ethers';
 
 import {
+  CErc20Delegate,
+  CErc20Delegate__factory,
   CErc20Delegator,
   CErc20Delegator__factory,
   CErc20Immutable,
@@ -110,7 +112,10 @@ export async function deployCEth(args: CEthArgs, deployer: Signer): Promise<CEth
   );
 }
 
-async function deployCErc20Immutable(args: CErc20Args, deployer: Signer): Promise<CErc20Immutable> {
+export async function deployCErc20Immutable(
+  args: CErc20Args,
+  deployer: Signer
+): Promise<CErc20Immutable> {
   return new CErc20Immutable__factory(deployer).deploy(
     args.underlying,
     args.comptroller,
@@ -123,7 +128,7 @@ async function deployCErc20Immutable(args: CErc20Args, deployer: Signer): Promis
   );
 }
 
-async function deployCErc20Delegator(
+export async function deployCErc20Delegator(
   args: CErc20DelegatorArgs,
   deployer: Signer
 ): Promise<CErc20Delegator> {
@@ -137,6 +142,10 @@ async function deployCErc20Delegator(
     args.decimals,
     args.admin,
     args.implementation,
-    '0x0'
+    '0x00'
   );
+}
+
+export async function deployCErc20Delegate(deployer: Signer): Promise<CErc20Delegate> {
+  return new CErc20Delegate__factory(deployer).deploy();
 }
