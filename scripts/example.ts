@@ -34,7 +34,7 @@ async function main() {
     },
     deployer
   );
-  console.log('cBat', cAAA.address);
+  console.log('cAAA', cAAA.address);
 
   await comptroller._supportMarket(cAAA.address);
   await priceOracle.setUnderlyingPrice(cAAA.address, '645000000000000000');
