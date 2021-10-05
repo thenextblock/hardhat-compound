@@ -2,50 +2,44 @@ import '@nomiclabs/hardhat-ethers/internal/type-extensions';
 import { Erc20Token } from '@thenextblock/hardhat-erc20-plugin';
 import hre from 'hardhat';
 
-import {
-  deployCErc20Delegate,
-  deployCompoundV2,
-  deployCToken,
-  deployWhitePaperInterestRateModel,
-} from '../src';
+import { CTokenDeployArg, deployCompoundV2 } from '../src';
 
 async function main() {
   const [deployer] = await hre.ethers.getSigners();
-  const { comptroller, priceOracle } = await deployCompoundV2(deployer);
 
-  // 1. deploy ERC-20 token (underlying)
-  const aaa = await Erc20Token.deploy(new Erc20Token('A token', 'AAA', 8), deployer);
+  const uni = await Erc20Token.deploy(new Erc20Token('Uniswap', 'UNI', 8), deployer);
+  const aave = await Erc20Token.deploy(new Erc20Token('Aave', 'AAVE', 8), deployer);
 
-  // 2. deploy interest rate model
-  const aaaIrm = await deployWhitePaperInterestRateModel(
-    { baseRatePerYear: '20000000000000000', multiplierPerYear: '300000000000000000' },
-    deployer
-  );
-
-  // 3. deploy delegated cToken
-  const cAAADelegate = await deployCErc20Delegate(deployer);
-  const cAAA = await deployCToken(
+  const cTokenDeployArgs: CTokenDeployArg[] = [
     {
-      underlying: aaa.address,
-      comptroller: comptroller.address,
-      interestRateModel: aaaIrm.address,
-      initialExchangeRateMantissa: '200000000000000000000000000',
-      name: 'Compound A Token',
-      symbol: 'cAAA',
-      decimals: 8,
-      admin: deployer.address,
-      implementation: cAAADelegate.address,
+      cToken: 'cAAVE',
+      underlying: aave.address,
+      underlyingPrice: 500,
+      collateralFactor: '800000000000000000',
     },
+    {
+      cToken: 'cUNI',
+      underlying: uni.address,
+    },
+  ];
+
+  const { comptroller, priceOracle, interestRateModels, cTokens } = await deployCompoundV2(
+    cTokenDeployArgs,
     deployer
   );
-  console.log('cAAADelegate', cAAADelegate.address);
-  console.log('cAAA', cAAA.address);
 
-  // 4. add to the market and mark as listed
-  await comptroller._supportMarket(cAAA.address);
+  console.log('CTokens');
+  console.log(cTokens.map((ct) => ct.address));
+  console.log('\nComptroller');
+  console.log(comptroller.address);
+  console.log('\nPriceOracle');
+  console.log(priceOracle.address);
+  console.log('\nInterestRateModels');
+  console.log(interestRateModels);
 
-  // 5. provide a price
-  await priceOracle.setUnderlyingPrice(cAAA.address, '645000000000000000');
+  for (const cToken of cTokens) {
+    console.log('cAAVE market', await comptroller.markets(cToken.address));
+  }
 }
 
 main().then();
