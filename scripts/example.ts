@@ -20,6 +20,8 @@ async function main() {
     {
       cToken: 'cUNI',
       underlying: uni.address,
+      underlyingPrice: 24,
+      collateralFactor: '600000000000000000',
     },
   ];
 
@@ -28,18 +30,29 @@ async function main() {
     deployer
   );
 
-  console.log('CTokens');
-  console.log(cTokens.map((ct) => ct.address));
   console.log('\nComptroller');
   console.log(comptroller.address);
   console.log('\nPriceOracle');
   console.log(priceOracle.address);
-  console.log('\nInterestRateModels');
-  console.log(interestRateModels);
 
-  for (const cToken of cTokens) {
-    console.log('cAAVE market', await comptroller.markets(cToken.address));
+  console.log('Markets (cTokens)');
+  for (const c of Object.keys(cTokens)) {
+    console.log(c, await comptroller.markets(cTokens[c].address));
   }
+
+  console.log('mint 500 UNI');
+  await uni.mint(deployer.address, '50000000000');
+  console.log(
+    'balance od UNI',
+    (await uni.contract.functions.balanceOf(deployer.address)).toString()
+  );
+  const cUni = cTokens.cUNI;
+  console.log('cUNI exchangeRate', (await cUni.exchangeRateStored()).toString());
+  await uni.approve(cUni.address, '1000000000000000000');
+  console.log(`supply 30 UNI`);
+  await cUni.mint('3000000000');
+  console.log('cUNI exchangeRate', (await cUni.exchangeRateStored()).toString());
+  console.log('balance of cUNI', (await cUni.balanceOf(deployer.address)).toString());
 }
 
 main().then();

@@ -2,7 +2,9 @@ import { BigNumberish } from 'ethers';
 
 import {
   BaseJumpRateModelV2,
-  CErc20Interface,
+  CErc20,
+  CErc20Delegator,
+  CErc20Immutable,
   CEther,
   Comptroller,
   SimplePriceOracle,
@@ -15,12 +17,18 @@ export interface CompoundV2 {
   readonly comptroller: Comptroller;
   readonly priceOracle: SimplePriceOracle;
   readonly interestRateModels: InterestRateModels;
-  readonly cTokens: (CErc20Interface | CEther)[];
+  readonly cTokens: CTokens;
 }
 
 export interface InterestRateModels {
   [key: string]: WhitePaperInterestRateModel | BaseJumpRateModelV2;
 }
+
+export interface CTokens {
+  [key: string]: CTokenLike;
+}
+
+export type CTokenLike = CErc20 | CErc20Immutable | CErc20Delegator | CEther;
 
 export interface CToken {
   symbol: string;

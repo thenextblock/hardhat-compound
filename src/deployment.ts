@@ -2,13 +2,13 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 import {
   BaseJumpRateModelV2,
+  CErc20,
   CErc20Delegate,
   CErc20Delegate__factory,
   CErc20Delegator,
   CErc20Delegator__factory,
   CErc20Immutable,
   CErc20Immutable__factory,
-  CErc20Interface,
   CEther,
   CEther__factory,
   Comptroller,
@@ -30,6 +30,7 @@ import {
   CompoundV2,
   CTokenArgs,
   CTokenDeployArg,
+  CTokenLike, CTokens,
   InterestRateModelConfig,
   InterestRateModels,
   JumpRateModelV2Args,
@@ -47,13 +48,17 @@ export async function deployCompoundV2(
 
   const interestRateModelArgs = Object.values(INTEREST_RATE_MODEL);
   const interestRateModels = await deployInterestRateModels(interestRateModelArgs, deployer);
-  const cTokens = await deployCTokens(
+  const cTokenLikes = await deployCTokens(
     underlying,
     interestRateModels,
     priceOracle,
     comptroller,
     deployer
   );
+  const cTokens: CTokens = {};
+  for (const ct of cTokenLikes) {
+    cTokens[await ct.symbol()] = ct;
+  }
 
   return {
     comptroller,
@@ -69,8 +74,8 @@ async function deployCTokens(
   priceOracle: SimplePriceOracle,
   comptroller: Comptroller,
   deployer: SignerWithAddress
-): Promise<(CErc20Interface | CEther)[]> {
-  const cTokens: (CErc20Interface | CEther)[] = [];
+): Promise<CTokenLike[]> {
+  const cTokens: CTokenLike[] = [];
 
   for (const u of config) {
     const cTokenConf = CTOKEN[u.cToken];
@@ -99,7 +104,7 @@ async function deployCTokens(
 export async function deployCToken(
   args: CTokenArgs,
   deployer: SignerWithAddress
-): Promise<CErc20Interface> {
+): Promise<CTokenLike> {
   if ('implementation' in args) {
     return deployCErc20Delegator(args as CErc20DelegatorArgs, deployer);
   }
