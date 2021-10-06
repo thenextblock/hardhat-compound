@@ -1,7 +1,7 @@
 {
-  "name": "@thenextblock/hardhat-compound-plugin",
+  "name": "@thenextblock/hardhat-compound",
   "version": "0.0.1",
-  "description": "",
+  "description": "Compound deployment plugin",
   "repository": "git@github.com:thenextblock/hardhat-compound.git",
   "author": "thenextblock",
   "license": "MIT",
@@ -9,9 +9,13 @@
   "types": "dist/src/index.d.ts",
   "keywords": [
     "ethereum",
-    "compound",
+    "compound-finance",
+    "finance",
     "hardhat",
-    "hardhat-plugin"
+    "hardhat-plugin",
+    "defi",
+    "lending",
+    "solidity"
   ],
   "scripts": {
     "lint:fix": "prettier --write 'src/**/*.{js,ts}' 'test/**/*.{js,ts}' && tslint --fix --config tslint.json --project tsconfig.json",
@@ -22,12 +26,13 @@
   },
   "files": [
     "dist/src/",
+    "dist/artifacts/contracts/**/*.sol/*.json",
     "src/",
     "*.d.ts",
     "*.d.ts.map",
     "*.js",
     "*.js,map",
-    "types/",
+    "typechain/",
     "LICENSE",
     "README.md"
   ],
