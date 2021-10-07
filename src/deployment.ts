@@ -2,7 +2,6 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 import {
   BaseJumpRateModelV2,
-  CErc20,
   CErc20Delegate,
   CErc20Delegate__factory,
   CErc20Delegator,
@@ -30,7 +29,8 @@ import {
   CompoundV2,
   CTokenArgs,
   CTokenDeployArg,
-  CTokenLike, CTokens,
+  CTokenLike,
+  CTokens,
   InterestRateModelConfig,
   InterestRateModels,
   JumpRateModelV2Args,

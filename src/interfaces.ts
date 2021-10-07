@@ -30,14 +30,6 @@ export interface CTokens {
 
 export type CTokenLike = CErc20 | CErc20Immutable | CErc20Delegator | CEther;
 
-export interface CToken {
-  symbol: string;
-  decimals: number;
-  address: string;
-  underlying: string;
-  interestRateModel: string;
-}
-
 export interface CEthArgs {
   comptroller: string;
   interestRateModel: string;
@@ -82,11 +74,6 @@ export type BaseJumpRateModelV2Args = {
 export type LegacyJumpRateModelV2Args = BaseJumpRateModelV2Args;
 
 export type JumpRateModelV2Args = BaseJumpRateModelV2Args;
-
-export type InterestRateModelArgs =
-  | WhitePaperInterestRateModelArgs
-  | LegacyJumpRateModelV2Args
-  | JumpRateModelV2Args;
 
 export interface InterestRateModelConfigs {
   readonly [key: string]: InterestRateModelConfig;
