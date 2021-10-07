@@ -14,7 +14,7 @@ task(COMPOUND_CORE_DEPLOY, 'Deploy Compound V2 contracts')
     } else {
       [deployer] = await hre.ethers.getSigners();
     }
-    return deployCompoundV2(deployer);
+    return deployCompoundV2([], deployer);
   });
 
 task(COMPOUND_CTOKEN_DEPLOY, 'Deploy cTokens')

@@ -1,14 +1,14 @@
 import '@nomiclabs/hardhat-ethers/internal/type-extensions';
-import { Erc20Token } from '@thenextblock/hardhat-erc20-plugin';
+import { deployErc20Token } from '@thenextblock/hardhat-erc20';
 import hre from 'hardhat';
 
 import { CTokenDeployArg, deployCompoundV2 } from '../src';
 
 async function main() {
-  const [deployer] = await hre.ethers.getSigners();
+  const [deployer, userA] = await hre.ethers.getSigners();
 
-  const uni = await Erc20Token.deploy(new Erc20Token('Uniswap', 'UNI', 8), deployer);
-  const aave = await Erc20Token.deploy(new Erc20Token('Aave', 'AAVE', 8), deployer);
+  const uni = await deployErc20Token({ name: 'Uniswap', symbol: 'UNI', decimals: 8 }, deployer);
+  const aave = await deployErc20Token({ name: 'Aave', symbol: 'AAVE', decimals: 8 }, deployer);
 
   const cTokenDeployArgs: CTokenDeployArg[] = [
     {
@@ -24,35 +24,26 @@ async function main() {
       collateralFactor: '600000000000000000',
     },
   ];
-
   const { comptroller, priceOracle, interestRateModels, cTokens } = await deployCompoundV2(
     cTokenDeployArgs,
     deployer
   );
+  const { cUni, cAave } = cTokens;
 
-  console.log('\nComptroller');
+  console.log('Comptroller');
   console.log(comptroller.address);
-  console.log('\nPriceOracle');
+
+  console.log('PriceOracle');
   console.log(priceOracle.address);
 
-  console.log('Markets (cTokens)');
+  console.log('Markets');
   for (const c of Object.keys(cTokens)) {
     console.log(c, await comptroller.markets(cTokens[c].address));
   }
-
-  console.log('mint 500 UNI');
+  
   await uni.mint(deployer.address, '50000000000');
-  console.log(
-    'balance od UNI',
-    (await uni.contract.functions.balanceOf(deployer.address)).toString()
-  );
-  const cUni = cTokens.cUNI;
-  console.log('cUNI exchangeRate', (await cUni.exchangeRateStored()).toString());
   await uni.approve(cUni.address, '1000000000000000000');
-  console.log(`supply 30 UNI`);
   await cUni.mint('3000000000');
-  console.log('cUNI exchangeRate', (await cUni.exchangeRateStored()).toString());
-  console.log('balance of cUNI', (await cUni.balanceOf(deployer.address)).toString());
 }
 
 main().then();

@@ -56,7 +56,7 @@
     "typechain": "^5.1.2"
   },
   "dependencies": {
-    "@thenextblock/hardhat-erc20-plugin": "^0.0.6",
+    "@thenextblock/hardhat-erc20": "^0.0.2",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@typechain/ethers-v5": "^7.0.1",
     "@typechain/hardhat": "^2.2.0",
