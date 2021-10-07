@@ -26,13 +26,12 @@
   },
   "files": [
     "dist/src/",
+    "dist/typechain",
     "dist/artifacts/contracts/**/*.sol/*.json",
-    "src/",
     "*.d.ts",
     "*.d.ts.map",
     "*.js",
     "*.js,map",
-    "typechain/",
     "LICENSE",
     "README.md"
   ],
