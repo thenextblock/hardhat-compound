@@ -1,6 +1,6 @@
 {
   "name": "@thenextblock/hardhat-compound",
-  "version": "0.0.1",
+  "version": "0.0.6",
   "description": "Compound deployment plugin",
   "repository": "git@github.com:thenextblock/hardhat-compound.git",
   "author": "thenextblock",
