@@ -56,9 +56,9 @@ export async function deployCompoundV2(
     deployer
   );
   const cTokens: CTokens = {};
-  for (const ct of cTokenLikes) {
-    cTokens[await ct.symbol()] = ct;
-  }
+  underlying.forEach((u, idx) => {
+    cTokens[u.cToken] = cTokenLikes[idx];
+  });
 
   return {
     comptroller,
