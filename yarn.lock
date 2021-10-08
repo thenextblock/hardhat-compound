@@ -534,10 +534,10 @@
   dependencies:
     antlr4ts "^0.5.0-alpha.4"
 
-"@thenextblock/hardhat-erc20@^0.0.2":
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/@thenextblock/hardhat-erc20/-/hardhat-erc20-0.0.2.tgz#f45dc219506a83f52d55792330e2bc1eb7651036"
-  integrity sha512-/2KXVMTQxX8bL+x4poKuFZ6fD0SDpjG8PxRdWBDWpG6IBkhrwa2RTGtFvgqOqy2rHMDenWRoV6aIj5FZJhW9TA==
+"@thenextblock/hardhat-erc20@^0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@thenextblock/hardhat-erc20/-/hardhat-erc20-0.0.4.tgz#2be7aedd56a3b4221e0855ae289c0c7e5040705c"
+  integrity sha512-mXyZmTNbtLg3VQfU73U1CyjTCNplPPdN5duledewQEqQyModp+8LyKe+S7544c2JOTxXUNT6snC9ickSILNbKA==
   dependencies:
     "@nomiclabs/hardhat-ethers" "^2.0.2"
     "@openzeppelin/contracts" "3.4.1-solc-0.7-2"
