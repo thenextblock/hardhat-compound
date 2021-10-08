@@ -25,6 +25,7 @@
     "watch": "tsc -w"
   },
   "files": [
+    "dist/contracts/",
     "dist/src/",
     "dist/typechain",
     "dist/artifacts/contracts/**/*.sol/*.json",
