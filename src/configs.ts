@@ -5,17 +5,26 @@ export const INTEREST_RATE_MODEL: InterestRateModelConfigs = {
   Base200bps_Slope1000bps: {
     name: 'Base200bps_Slope1000bps',
     type: InterestRateModelType.WhitePaperInterestRateModel,
-    args: { baseRatePerYear: '20000000000000000', multiplierPerYear: '100000000000000000' },
+    args: {
+      baseRatePerYear: '20000000000000000',
+      multiplierPerYear: '100000000000000000',
+    },
   },
   Base200bps_Slope3000bps: {
     name: 'Base200bps_Slope3000bps',
     type: InterestRateModelType.WhitePaperInterestRateModel,
-    args: { baseRatePerYear: '20000000000000000', multiplierPerYear: '300000000000000000' },
+    args: {
+      baseRatePerYear: '20000000000000000',
+      multiplierPerYear: '300000000000000000',
+    },
   },
   Base500bps_Slope1200bps: {
     name: 'Base500bps_Slope1200bps',
     type: InterestRateModelType.WhitePaperInterestRateModel,
-    args: { baseRatePerYear: '50000000000000000', multiplierPerYear: '120000000000000000' },
+    args: {
+      baseRatePerYear: '50000000000000000',
+      multiplierPerYear: '120000000000000000',
+    },
   },
   IRM_COMP_Updateable: {
     name: 'IRM_COMP_Updateable',
