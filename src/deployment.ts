@@ -55,7 +55,7 @@ export async function deployCompoundV2(
     comptroller,
     deployer
   );
-  const cTokens: CTokens = {};
+  const cTokens = new CTokens();
   underlying.forEach((u, idx) => {
     cTokens[u.cToken] = cTokenLikes[idx];
   });
@@ -76,22 +76,25 @@ async function deployCTokens(
   deployer: SignerWithAddress
 ): Promise<CTokenLike[]> {
   const cTokens: CTokenLike[] = [];
-
   for (const u of config) {
     const cTokenConf = CTOKEN[u.cToken];
     const cTokenArgs = cTokenConf.args as CTokenArgs;
     cTokenArgs.comptroller = comptroller.address;
-    cTokenArgs.underlying = u.underlying;
+    cTokenArgs.underlying = u.underlying || '0x00';
     cTokenArgs.interestRateModel = irm[cTokenConf.interestRateModel.name].address;
     cTokenArgs.admin = deployer.address;
     if (cTokenConf.type === CTokenType.CErc20Delegator) {
       cTokenArgs.implementation = (await deployCErc20Delegate(deployer)).address;
     }
-    const cToken = await deployCToken(cTokenArgs, deployer);
+    const cToken =
+      cTokenConf.type === CTokenType.CEther
+        ? await deployCEth(cTokenArgs, deployer)
+        : await deployCToken(cTokenArgs, deployer);
     await comptroller._supportMarket(cToken.address);
-
-    if (u.underlyingPrice) {
-      await priceOracle.setUnderlyingPrice(cToken.address, u.underlyingPrice);
+    if (cTokenConf.type === CTokenType.CEther) {
+      await priceOracle.setDirectPrice(cToken.address, u.underlyingPrice || 0);
+    } else {
+      await priceOracle.setUnderlyingPrice(cToken.address, u.underlyingPrice || 0);
     }
     if (u.collateralFactor) {
       await comptroller._setCollateralFactor(cToken.address, u.collateralFactor);

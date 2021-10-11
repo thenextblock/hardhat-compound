@@ -24,8 +24,15 @@ export interface InterestRateModels {
   [key: string]: WhitePaperInterestRateModel | BaseJumpRateModelV2;
 }
 
-export interface CTokens {
+export class CTokens {
   [key: string]: CTokenLike;
+
+  get cETH(): CEther {
+    return this.cEth as CEther;
+  }
+  set cETH(value: CTokenLike) {
+    this.cEth = value;
+  }
 }
 
 export type CTokenLike = CErc20 | CErc20Immutable | CErc20Delegator | CEther;
@@ -98,7 +105,7 @@ export interface CTokenConfig {
 
 export interface CTokenDeployArg {
   cToken: string;
-  underlying: string;
+  underlying?: string;
   underlyingPrice?: BigNumberish;
   collateralFactor?: BigNumberish;
 }
