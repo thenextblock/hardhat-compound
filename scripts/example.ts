@@ -1,49 +1,44 @@
-import '@nomiclabs/hardhat-ethers/internal/type-extensions';
 import { deployErc20Token } from '@thenextblock/hardhat-erc20';
-import hre from 'hardhat';
+import { formatUnits, parseUnits } from 'ethers/lib/utils';
+import { ethers } from 'hardhat';
 
 import { CTokenDeployArg, deployCompoundV2 } from '../src';
 
 async function main() {
-  const [deployer, userA] = await hre.ethers.getSigners();
+  const [deployer, userA] = await ethers.getSigners();
 
-  const uni = await deployErc20Token({ name: 'Uniswap', symbol: 'UNI', decimals: 8 }, deployer);
-  const aave = await deployErc20Token({ name: 'Aave', symbol: 'AAVE', decimals: 8 }, deployer);
+  const uni = await deployErc20Token(
+    {
+      name: 'Uniswap',
+      symbol: 'UNI',
+      decimals: 18,
+    },
+    deployer
+  );
 
   const cTokenDeployArgs: CTokenDeployArg[] = [
     {
-      cToken: 'cAAVE',
-      underlying: aave.address,
-      underlyingPrice: 500,
+      cToken: 'cUNI',
+      underlying: uni.address,
+      underlyingPrice: '25022748000000000000',
       collateralFactor: '800000000000000000',
     },
     {
-      cToken: 'cUNI',
-      underlying: uni.address,
-      underlyingPrice: 24,
+      cToken: 'cETH',
+      underlyingPrice: '35721743800000000000000',
       collateralFactor: '600000000000000000',
     },
   ];
-  const { comptroller, priceOracle, interestRateModels, cTokens } = await deployCompoundV2(
-    cTokenDeployArgs,
-    deployer
-  );
-  const { cUni, cAave } = cTokens;
+  const { cTokens } = await deployCompoundV2(cTokenDeployArgs, deployer);
+  const { cETH: cEth, cUNI: cUni } = cTokens;
 
-  console.log('Comptroller');
-  console.log(comptroller.address);
-
-  console.log('PriceOracle');
-  console.log(priceOracle.address);
-
-  console.log('Markets');
-  for (const c of Object.keys(cTokens)) {
-    console.log(c, await comptroller.markets(cTokens[c].address));
-  }
-  
-  await uni.mint(deployer.address, '50000000000');
-  await uni.approve(cUni.address, '1000000000000000000');
-  await cUni.mint('3000000000');
+  const uniAmount = parseUnits('100', 18).toString();
+  await uni.mint(userA.address, uniAmount);
+  await uni.connect(userA).approve(cUni.address, uniAmount);
+  await cUni.connect(userA).mint(parseUnits('25', 18).toString());
+  await cEth.connect(userA).mint({
+    value: parseUnits('2', 18).toString(),
+  });
 }
 
-main().then();
+main().catch(console.error);
