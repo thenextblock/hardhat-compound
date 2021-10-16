@@ -3,9 +3,8 @@
 ## Installation
 
 ```
-	npm install @thenextblock/hardhat-compound
-	yarn add @thenextblock/hardhat-compound
-
+npm install @thenextblock/hardhat-compound
+yarn add @thenextblock/hardhat-compound
 ```
 
 The function `deployCompoundV2(CTokenDeployArg[], Signer): Promise<CompoundV2>`
