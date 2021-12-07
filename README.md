@@ -25,7 +25,11 @@ const cTokenDeployArgs = [
 
 const { cTokens, comptroller, interestRateModels, priceOracle } = await deployCompoundV2(
   cTokenDeployArgs,
-  deployer
+  deployer,
+  // optional overrides
+  {
+    gasLmit: 5_000_000
+  }
 );
 ```
 
