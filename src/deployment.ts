@@ -1,4 +1,5 @@
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { Overrides } from 'ethers';
 
 import {
   BaseJumpRateModelV2,
@@ -40,12 +41,13 @@ import {
 
 export async function deployCompoundV2(
   underlying: CTokenDeployArg[],
-  deployer: SignerWithAddress
+  deployer: SignerWithAddress,
+  overrides?: Overrides
 ): Promise<CompoundV2> {
-  const comptroller = await deployComptroller(deployer);
+  const comptroller = await deployComptroller(deployer, overrides);
   console.log('#1 Comptroller Deployed at: ', comptroller.address);
 
-  const priceOracle = await deployPriceOracle(deployer);
+  const priceOracle = await deployPriceOracle(deployer, overrides);
   console.log('#2 PriceOracle Deployed at: ', comptroller.address);
 
   await comptroller._setPriceOracle(priceOracle.address);
@@ -60,7 +62,8 @@ export async function deployCompoundV2(
     interestRateModels,
     priceOracle,
     comptroller,
-    deployer
+    deployer,
+    overrides
   );
 
   cTokenLikes.map((_ctoken, index) => {
@@ -85,7 +88,8 @@ async function deployCTokens(
   irm: InterestRateModels,
   priceOracle: SimplePriceOracle,
   comptroller: Comptroller,
-  deployer: SignerWithAddress
+  deployer: SignerWithAddress,
+  overrides?: Overrides
 ): Promise<CTokenLike[]> {
   const cTokens: CTokenLike[] = [];
   for (const u of config) {
@@ -96,29 +100,23 @@ async function deployCTokens(
     cTokenArgs.interestRateModel = irm[cTokenConf.interestRateModel.name].address;
     cTokenArgs.admin = deployer.address;
     if (cTokenConf.type === CTokenType.CErc20Delegator) {
-      cTokenArgs.implementation = (await deployCErc20Delegate(deployer)).address;
+      cTokenArgs.implementation = (await deployCErc20Delegate(deployer, overrides)).address;
     }
     const cToken =
       cTokenConf.type === CTokenType.CEther
-        ? await deployCEth(cTokenArgs, deployer)
-        : await deployCToken(cTokenArgs, deployer);
+        ? await deployCEth(cTokenArgs, deployer, overrides)
+        : await deployCToken(cTokenArgs, deployer, overrides);
 
-    await comptroller._supportMarket(cToken.address, { gasLimit: 2500000 });
+    await comptroller._supportMarket(cToken.address, overrides);
 
     if (cTokenConf.type === CTokenType.CEther) {
-      await priceOracle.setDirectPrice(cToken.address, u.underlyingPrice || 0, {
-        gasLimit: 2500000,
-      });
+      await priceOracle.setDirectPrice(cToken.address, u.underlyingPrice || 0, overrides);
     } else {
-      await priceOracle.setUnderlyingPrice(cToken.address, u.underlyingPrice || 0, {
-        gasLimit: 2500000,
-      });
+      await priceOracle.setUnderlyingPrice(cToken.address, u.underlyingPrice || 0, overrides);
     }
 
     if (u.collateralFactor) {
-      await comptroller._setCollateralFactor(cToken.address, u.collateralFactor, {
-        gasLimit: 2500000,
-      });
+      await comptroller._setCollateralFactor(cToken.address, u.collateralFactor, overrides);
     }
 
     cTokens.push(cToken);
@@ -128,57 +126,68 @@ async function deployCTokens(
 
 export async function deployCToken(
   args: CTokenArgs,
-  deployer: SignerWithAddress
+  deployer: SignerWithAddress,
+  overrides?: Overrides
 ): Promise<CTokenLike> {
   if ('implementation' in args) {
-    return deployCErc20Delegator(args as CErc20DelegatorArgs, deployer);
+    return deployCErc20Delegator(args as CErc20DelegatorArgs, deployer, overrides);
   }
-  return deployCErc20Immutable(args, deployer);
+  return deployCErc20Immutable(args, deployer, overrides);
 }
 
-export async function deployComptroller(deployer: SignerWithAddress): Promise<Comptroller> {
-  return new Comptroller__factory(deployer).deploy();
+export async function deployComptroller(
+  deployer: SignerWithAddress,
+  overrides?: Overrides
+): Promise<Comptroller> {
+  return new Comptroller__factory(deployer).deploy(overrides);
 }
 
 export async function deployWhitePaperInterestRateModel(
   args: WhitePaperInterestRateModelArgs,
-  deployer: SignerWithAddress
+  deployer: SignerWithAddress,
+  overrides?: Overrides
 ): Promise<WhitePaperInterestRateModel> {
   return new WhitePaperInterestRateModel__factory(deployer).deploy(
     args.baseRatePerYear,
-    args.multiplierPerYear
+    args.multiplierPerYear,
+    overrides
   );
 }
 
 export async function deployJumpRateModelV2(
   args: JumpRateModelV2Args,
-  deployer: SignerWithAddress
+  deployer: SignerWithAddress,
+  overrides?: Overrides
 ): Promise<BaseJumpRateModelV2> {
   return new JumpRateModelV2__factory(deployer).deploy(
     args.baseRatePerYear,
     args.multiplierPerYear,
     args.jumpMultiplierPerYear,
     args.kink,
-    args.owner
+    args.owner,
+    overrides
   );
 }
 
 export async function deployLegacyJumpRateModelV2(
   args: LegacyJumpRateModelV2Args,
-  deployer: SignerWithAddress
+  deployer: SignerWithAddress,
+  overrides?: Overrides
 ): Promise<BaseJumpRateModelV2> {
   return new LegacyJumpRateModelV2__factory(deployer).deploy(
     args.baseRatePerYear,
     args.multiplierPerYear,
     args.jumpMultiplierPerYear,
     args.kink,
-    args.owner
+    args.owner,
+    overrides
   );
 }
 
 async function deployInterestRateModels(
   items: InterestRateModelConfig[],
-  deployer: SignerWithAddress
+  deployer: SignerWithAddress,
+  overrides?: Overrides
 ) {
   const models: InterestRateModels = {};
   let model;
@@ -189,23 +198,35 @@ async function deployInterestRateModels(
     if (item.type === InterestRateModelType.WhitePaperInterestRateModel) {
       model = await deployWhitePaperInterestRateModel(
         item.args as WhitePaperInterestRateModelArgs,
-        deployer
+        deployer,
+        overrides
       );
     } else if (item.type === InterestRateModelType.LegacyJumpRateModelV2) {
-      model = await deployLegacyJumpRateModelV2(item.args as LegacyJumpRateModelV2Args, deployer);
+      model = await deployLegacyJumpRateModelV2(
+        item.args as LegacyJumpRateModelV2Args,
+        deployer,
+        overrides
+      );
     } else {
-      model = await deployJumpRateModelV2(item.args as JumpRateModelV2Args, deployer);
+      model = await deployJumpRateModelV2(item.args as JumpRateModelV2Args, deployer, overrides);
     }
     models[item.name] = model;
   }
   return models;
 }
 
-export async function deployPriceOracle(deployer: SignerWithAddress): Promise<SimplePriceOracle> {
-  return new SimplePriceOracle__factory(deployer).deploy();
+export async function deployPriceOracle(
+  deployer: SignerWithAddress,
+  overrides?: Overrides
+): Promise<SimplePriceOracle> {
+  return new SimplePriceOracle__factory(deployer).deploy(overrides);
 }
 
-export async function deployCEth(args: CEthArgs, deployer: SignerWithAddress): Promise<CEther> {
+export async function deployCEth(
+  args: CEthArgs,
+  deployer: SignerWithAddress,
+  overrides?: Overrides
+): Promise<CEther> {
   return new CEther__factory(deployer).deploy(
     args.comptroller,
     args.interestRateModel,
@@ -214,13 +235,14 @@ export async function deployCEth(args: CEthArgs, deployer: SignerWithAddress): P
     args.symbol,
     args.decimals,
     args.admin,
-    { gasLimit: 3500000 }
+    overrides
   );
 }
 
 export async function deployCErc20Immutable(
   args: CErc20Args,
-  deployer: SignerWithAddress
+  deployer: SignerWithAddress,
+  overrides?: Overrides
 ): Promise<CErc20Immutable> {
   return new CErc20Immutable__factory(deployer).deploy(
     args.underlying,
@@ -231,13 +253,14 @@ export async function deployCErc20Immutable(
     args.symbol,
     args.decimals,
     args.admin,
-    { gasLimit: 3500000 }
+    overrides
   );
 }
 
 export async function deployCErc20Delegator(
   args: CErc20DelegatorArgs,
-  deployer: SignerWithAddress
+  deployer: SignerWithAddress,
+  overrides?: Overrides
 ): Promise<CErc20Delegator> {
   return new CErc20Delegator__factory(deployer).deploy(
     args.underlying,
@@ -250,10 +273,13 @@ export async function deployCErc20Delegator(
     args.admin,
     args.implementation,
     '0x00',
-    { gasLimit: 3500000 }
+    overrides
   );
 }
 
-export async function deployCErc20Delegate(deployer: SignerWithAddress): Promise<CErc20Delegate> {
-  return new CErc20Delegate__factory(deployer).deploy({ gasLimit: 3500000 });
+export async function deployCErc20Delegate(
+  deployer: SignerWithAddress,
+  overrides?: Overrides
+): Promise<CErc20Delegate> {
+  return new CErc20Delegate__factory(deployer).deploy(overrides);
 }

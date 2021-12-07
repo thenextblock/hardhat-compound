@@ -29,7 +29,7 @@ async function main() {
       collateralFactor: '600000000000000000',
     },
   ];
-  const { cTokens } = await deployCompoundV2(cTokenDeployArgs, deployer);
+  const { cTokens } = await deployCompoundV2(cTokenDeployArgs, deployer, { gasLimit: 8_000_000 });
   const { cETH: cEth, cUNI: cUni } = cTokens;
 
   // const uniAmount = parseUnits('100', 18).toString();
