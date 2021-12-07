@@ -43,11 +43,18 @@ export async function deployCompoundV2(
   deployer: SignerWithAddress
 ): Promise<CompoundV2> {
   const comptroller = await deployComptroller(deployer);
+  console.log('#1 Comptroller Deployed at: ', comptroller.address);
+
   const priceOracle = await deployPriceOracle(deployer);
+  console.log('#2 PriceOracle Deployed at: ', comptroller.address);
+
   await comptroller._setPriceOracle(priceOracle.address);
+  console.log('#3 comptroller._setPriceOracle Done : ', priceOracle.address);
 
   const interestRateModelArgs = Object.values(INTEREST_RATE_MODEL);
   const interestRateModels = await deployInterestRateModels(interestRateModelArgs, deployer);
+  console.log('#4 interestRateModels Deployed at: ', priceOracle.address);
+
   const cTokenLikes = await deployCTokens(
     underlying,
     interestRateModels,
@@ -55,6 +62,11 @@ export async function deployCompoundV2(
     comptroller,
     deployer
   );
+
+  cTokenLikes.map((_ctoken, index) => {
+    console.log(`#5-${index + 1} CTokens Deployed at: ', ${_ctoken.address}`);
+  });
+
   const cTokens = new CTokens();
   underlying.forEach((u, idx) => {
     cTokens[u.cToken] = cTokenLikes[idx];
@@ -90,15 +102,16 @@ async function deployCTokens(
       cTokenConf.type === CTokenType.CEther
         ? await deployCEth(cTokenArgs, deployer)
         : await deployCToken(cTokenArgs, deployer);
-    await comptroller._supportMarket(cToken.address);
-    if (cTokenConf.type === CTokenType.CEther) {
-      await priceOracle.setDirectPrice(cToken.address, u.underlyingPrice || 0);
-    } else {
-      await priceOracle.setUnderlyingPrice(cToken.address, u.underlyingPrice || 0);
-    }
-    if (u.collateralFactor) {
-      await comptroller._setCollateralFactor(cToken.address, u.collateralFactor);
-    }
+
+    // await comptroller._supportMarket(cToken.address);
+    // if (cTokenConf.type === CTokenType.CEther) {
+    //   await priceOracle.setDirectPrice(cToken.address, u.underlyingPrice || 0);
+    // } else {
+    //   await priceOracle.setUnderlyingPrice(cToken.address, u.underlyingPrice || 0);
+    // }
+    // if (u.collateralFactor) {
+    //   await comptroller._setCollateralFactor(cToken.address, u.collateralFactor);
+    // }
     cTokens.push(cToken);
   }
   return cTokens;
@@ -191,7 +204,8 @@ export async function deployCEth(args: CEthArgs, deployer: SignerWithAddress): P
     args.name,
     args.symbol,
     args.decimals,
-    args.admin
+    args.admin,
+    { gasLimit: 3500000 }
   );
 }
 
@@ -207,7 +221,8 @@ export async function deployCErc20Immutable(
     args.name,
     args.symbol,
     args.decimals,
-    args.admin
+    args.admin,
+    { gasLimit: 3500000 }
   );
 }
 
@@ -225,10 +240,11 @@ export async function deployCErc20Delegator(
     args.decimals,
     args.admin,
     args.implementation,
-    '0x00'
+    '0x00',
+    { gasLimit: 3500000 }
   );
 }
 
 export async function deployCErc20Delegate(deployer: SignerWithAddress): Promise<CErc20Delegate> {
-  return new CErc20Delegate__factory(deployer).deploy();
+  return new CErc20Delegate__factory(deployer).deploy({ gasLimit: 3500000 });
 }
