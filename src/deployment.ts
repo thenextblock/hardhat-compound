@@ -103,15 +103,24 @@ async function deployCTokens(
         ? await deployCEth(cTokenArgs, deployer)
         : await deployCToken(cTokenArgs, deployer);
 
-    // await comptroller._supportMarket(cToken.address);
-    // if (cTokenConf.type === CTokenType.CEther) {
-    //   await priceOracle.setDirectPrice(cToken.address, u.underlyingPrice || 0);
-    // } else {
-    //   await priceOracle.setUnderlyingPrice(cToken.address, u.underlyingPrice || 0);
-    // }
-    // if (u.collateralFactor) {
-    //   await comptroller._setCollateralFactor(cToken.address, u.collateralFactor);
-    // }
+    await comptroller._supportMarket(cToken.address, { gasLimit: 2500000 });
+
+    if (cTokenConf.type === CTokenType.CEther) {
+      await priceOracle.setDirectPrice(cToken.address, u.underlyingPrice || 0, {
+        gasLimit: 2500000,
+      });
+    } else {
+      await priceOracle.setUnderlyingPrice(cToken.address, u.underlyingPrice || 0, {
+        gasLimit: 2500000,
+      });
+    }
+
+    if (u.collateralFactor) {
+      await comptroller._setCollateralFactor(cToken.address, u.collateralFactor, {
+        gasLimit: 2500000,
+      });
+    }
+
     cTokens.push(cToken);
   }
   return cTokens;

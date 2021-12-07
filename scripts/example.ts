@@ -32,13 +32,13 @@ async function main() {
   const { cTokens } = await deployCompoundV2(cTokenDeployArgs, deployer);
   const { cETH: cEth, cUNI: cUni } = cTokens;
 
-  const uniAmount = parseUnits('100', 18).toString();
-  await uni.mint(userA.address, uniAmount);
-  await uni.connect(userA).approve(cUni.address, uniAmount);
-  await cUni.connect(userA).mint(parseUnits('25', 18).toString());
-  await cEth.connect(userA).mint({
-    value: parseUnits('2', 18).toString(),
-  });
+  // const uniAmount = parseUnits('100', 18).toString();
+  // await uni.mint(userA.address, uniAmount);
+  // await uni.connect(userA).approve(cUni.address, uniAmount);
+  // await cUni.connect(userA).mint(parseUnits('25', 18).toString());
+  // await cEth.connect(userA).mint({
+  //   value: parseUnits('2', 18).toString(),
+  // });
 }
 
 main().catch(console.error);
